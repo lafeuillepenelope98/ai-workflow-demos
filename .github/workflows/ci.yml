@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check .
+
+  test-structured-extraction:
+    name: Test / structured-extraction
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: demos/structured-extraction/requirements.txt
+      - name: Install dependencies
+        run: pip install -r demos/structured-extraction/requirements.txt pytest
+      - name: Run tests
+        working-directory: demos/structured-extraction
+        run: pytest test_demo.py -v
+
+  integration-structured-extraction:
+    name: Integration / structured-extraction
+    runs-on: ubuntu-latest
+    # Only runs when ANTHROPIC_API_KEY is available (set as a repo secret)
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    needs: test-structured-extraction
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: demos/structured-extraction/requirements.txt
+      - name: Install dependencies
+        run: pip install -r demos/structured-extraction/requirements.txt
+      - name: Run demo end-to-end
+        working-directory: demos/structured-extraction
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python demo.py
