@@ -1,12 +1,9 @@
 """Tests for the structured-extraction demo (API is mocked — no key required)."""
 
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 import demo
-
 
 MOCK_RESULT = {
     "title": "Test Article",
